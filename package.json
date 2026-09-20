@@ -1,0 +1,11 @@
+{
+  "name": "coloclome-docs",
+  "private": true,
+  "description": "Outils de documentation ColocLomé",
+  "scripts": {
+    "screenshots": "node docs/capture.cjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.11.0"
+  }
+}
