@@ -20,16 +20,13 @@ final class Database
         ];
 
         try {
-            $root = new PDO(
-                sprintf('mysql:host=%s;port=%s;charset=%s', $config['host'], $config['port'], $config['charset']),
+            $pdo = new PDO(
+                sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', $config['host'], $config['port'], $config['name'], $config['charset']),
                 $config['user'],
                 $config['pass'],
                 $options
             );
-            $name = str_replace('`', '', $config['name']);
-            $root->exec("CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $root->exec("USE `{$name}`");
-            self::$pdo = $root;
+            self::$pdo = $pdo;
             self::seedIfEmpty();
         } catch (PDOException $e) {
             self::$pdo = null;
@@ -54,11 +51,9 @@ final class Database
     private static function seedIfEmpty(): void
     {
         $exists = self::$pdo->query("SHOW TABLES LIKE 'users'")->fetch();
-        if ($exists) {
-            $count = (int) self::$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-            if ($count > 0) {
-                return;
-            }
+        $hasUsers = $exists && (int) self::$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn() > 0;
+        if ($hasUsers) {
+            return;
         }
 
         $sqlFile = dirname(__DIR__, 2) . '/database/schema.sql';
@@ -67,14 +62,21 @@ final class Database
         }
 
         $sql = (string) file_get_contents($sqlFile);
-        $sql = preg_replace('/^CREATE DATABASE.*?;/mi', '', $sql) ?? $sql;
-        $sql = preg_replace('/^USE .*?;/mi', '', $sql) ?? $sql;
+        $sql = preg_replace('/^\s*--.*$/m', '', $sql) ?? $sql;
+        $sql = preg_replace('/^\s*(CREATE DATABASE|USE)\b.*?;\s*$/mi', '', $sql) ?? $sql;
+        $sql = preg_replace('/^\s*DROP TABLE IF EXISTS .*?;\s*$/mi', '', $sql) ?? $sql;
+        $sql = preg_replace('/CREATE TABLE\s+(?!IF NOT EXISTS)/i', 'CREATE TABLE IF NOT EXISTS ', $sql) ?? $sql;
 
+        self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
         foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
-            if ($statement === '' || str_starts_with($statement, '--') || str_starts_with($statement, 'SET NAMES')) {
+            if ($statement === '' || preg_match('/^(SET FOREIGN_KEY_CHECKS|SET NAMES)/i', $statement)) {
+                continue;
+            }
+            if ($hasUsers && preg_match('/^INSERT\s+INTO/i', $statement)) {
                 continue;
             }
             self::$pdo->exec($statement);
         }
+        self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
 }
