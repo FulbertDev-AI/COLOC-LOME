@@ -342,4 +342,4 @@ COLOC/
 
 ## Licence
 
-Projet pédagogique / démonstration. Tous droits réservés à l’auteur, sauf mention contraire.
+MIT license
