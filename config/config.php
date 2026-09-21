@@ -3,15 +3,15 @@
 return [
     'app' => [
         'name' => 'ColocLomé',
-        'url' => getenv('APP_URL') ?: 'http://localhost/COLOC/public',
-        'env' => getenv('APP_ENV') ?: 'local',
+        'url' => getenv('APP_URL') ?: 'https://coloc-lome.wasmer.app/',
+        'env' => getenv('APP_ENV') ?: 'production',
     ],
     'db' => [
-        'host' => getenv('DB_HOST') ?: '127.0.0.1',
-        'port' => getenv('DB_PORT') ?: '3306',
-        'name' => getenv('DB_NAME') ?: 'coloclome',
-        'user' => getenv('DB_USER') ?: 'root',
-        'pass' => getenv('DB_PASS') ?: '',
+        'host' => getenv('DB_HOST') ?: 'db.fr-roub1.bengt.wasmernet.com',
+        'port' => getenv('DB_PORT') ?: '20184',
+        'name' => getenv('DB_NAME') ?: 'db_8a71fe16',
+        'user' => getenv('DB_USER') ?: 'user_9663eaa1',
+        'pass' => getenv('DB_PASS') ?: 'pw_0N8dz245xU4JrViaVdo12uHlP0rzRRq5',
         'charset' => 'utf8mb4',
     ],
 ];
